@@ -891,6 +891,7 @@ class Transaction:
 
         for o in self.get_outputs():
             value = o[1]
+            #@todo ixcoin
             if value < 1000000:
                 return True
         sum = 0

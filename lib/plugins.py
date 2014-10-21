@@ -6,7 +6,7 @@ from i18n import _
 plugins = []
 
 
-def init_plugins(config):
+def init_plugins(self):
     import imp, pkgutil, __builtin__, os
     global plugins
 
@@ -14,19 +14,42 @@ def init_plugins(config):
         fp, pathname, description = imp.find_module('plugins')
         plugin_names = [name for a, name, b in pkgutil.iter_modules([pathname])]
         plugin_names = filter( lambda name: os.path.exists(os.path.join(pathname,name+'.py')), plugin_names)
-        imp.load_module('electrum_plugins', fp, pathname, description)
-        plugin_modules = map(lambda name: imp.load_source('electrum_plugins.'+name, os.path.join(pathname,name+'.py')), plugin_names)
+        imp.load_module('electrum_ixc_plugins', fp, pathname, description)
+        plugin_modules = map(lambda name: imp.load_source('electrum_ixc_plugins.'+name, os.path.join(pathname,name+'.py')), plugin_names)
     else:
-        import electrum_plugins
-        plugin_names = [name for a, name, b in pkgutil.iter_modules(electrum_plugins.__path__)]
-        plugin_modules = [ __import__('electrum_plugins.'+name, fromlist=['electrum_plugins']) for name in plugin_names]
+        import electrum_ixc_plugins
+        plugin_names = [name for a, name, b in pkgutil.iter_modules(electrum_ixc_plugins.__path__)]
+        plugin_modules = [ __import__('electrum_ixc_plugins.'+name, fromlist=['electrum_ltc_plugins']) for name in plugin_names]
 
     for name, p in zip(plugin_names, plugin_modules):
         try:
-            plugins.append( p.Plugin(config, name) )
+            plugins.append( p.Plugin(self, name) )
         except Exception:
             print_msg(_("Error: cannot initialize plugin"),p)
             traceback.print_exc(file=sys.stdout)
+
+
+#def init_plugins(config):
+    #import imp, pkgutil, __builtin__, os
+    #global plugins
+
+    #if __builtin__.use_local_modules and False:
+        #fp, pathname, description = imp.find_module('plugins')
+        #plugin_names = [name for a, name, b in pkgutil.iter_modules([pathname])]
+        #plugin_names = filter( lambda name: os.path.exists(os.path.join(pathname,name+'.py')), plugin_names)
+        #imp.load_module('electrum_ixc_plugins', fp, pathname, description)
+        #plugin_modules = map(lambda name: imp.load_source('electrum_ixc_plugins.'+name, os.path.join(pathname,name+'.py')), plugin_names)
+    #else:
+        #import electrum_ixc_plugins
+        #plugin_names = [name for a, name, b in pkgutil.iter_modules(electrum_ixc_plugins.__path__)]
+        #plugin_modules = [ __import__('electrum_ixc_plugins.'+name, fromlist=['electrum_ixc_plugins']) for name in plugin_names]
+
+    #for name, p in zip(plugin_names, plugin_modules):
+        #try:
+            #plugins.append( p.Plugin(config, name) )
+        #except Exception:
+            #print_msg(_("Error: cannot initialize plugin"),p)
+            #traceback.print_exc(file=sys.stdout)
 
 
 hook_names = set()

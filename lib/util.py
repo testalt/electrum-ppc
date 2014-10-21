@@ -43,13 +43,13 @@ def print_json(obj):
 
 def user_dir():
     if "HOME" in os.environ:
-        return os.path.join(os.environ["HOME"], ".electrum")
+        return os.path.join(os.environ["HOME"], ".electrum-ixc")
     elif "APPDATA" in os.environ:
-        return os.path.join(os.environ["APPDATA"], "Electrum")
+        return os.path.join(os.environ["APPDATA"], "Electrum-IXC")
     elif "LOCALAPPDATA" in os.environ:
-        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum")
+        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum-IXC")
     elif 'ANDROID_DATA' in os.environ:
-        return "/sdcard/electrum/"
+        return "/sdcard/electrum-ixc/"
     else:
         #raise Exception("No home directory found in environment variables.")
         return
@@ -64,17 +64,17 @@ def data_dir():
 
 
 def appdata_dir():
-    """Find the path to the application data directory; add an electrum folder and return path."""
+    """Find the path to the application data directory; add an electrum-ixc folder and return path."""
     if platform.system() == "Windows":
-        return os.path.join(os.environ["APPDATA"], "Electrum")
+        return os.path.join(os.environ["APPDATA"], "Electrum-IXC")
     elif platform.system() == "Linux":
-        return os.path.join(sys.prefix, "share", "electrum")
+        return os.path.join(sys.prefix, "share", "electrum-ixc")
     elif (platform.system() == "Darwin" or
           platform.system() == "DragonFly" or
           platform.system() == "OpenBSD" or
           platform.system() == "FreeBSD" or
 	  platform.system() == "NetBSD"):
-        return "/Library/Application Support/Electrum"
+        return "/Library/Application Support/Electrum-IXC"
     else:
         raise Exception("Unknown system")
 
@@ -176,7 +176,7 @@ def parse_URI(uri):
         return uri, None, None, None, None
 
     u = urlparse.urlparse(uri)
-    assert u.scheme == 'bitcoin'
+    assert u.scheme == 'ixcoin'
 
     address = u.path
     valid_address = bitcoin.is_address(address)

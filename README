@@ -1,9 +1,15 @@
-Electrum - lightweight Bitcoin client
+uint256 hashGenesisBlock("0x0000000001534ef8893b025b9c1da67250285e35c9f76cae36a4904fdf72c591");//("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"); // ixcoin
+const int nTotalBlocksEstimate = 36500; // Conservative estimate of total nr of blocks on main chain //ixcoin
+int64 nSubsidy = 96 * COIN; //ixcoin
+chainid return 0x0003;
+checksignature !key.SetPubKey(ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284"))) //8284 ixcoin
+
+Electrum-IXC - lightweight Bitcoin client
 
 Licence: GNU GPL v3
 Author: Thomas Voegtlin
 Language: Python
-Homepage: https://electrum.org/
+Homepage: https://ixco.in/electrum
 
 
 1. GETTING STARTED
@@ -11,13 +17,13 @@ Homepage: https://electrum.org/
 
 To run Electrum from this directory, just do:
 
-  ./electrum
+  ./electrum-ixc
 
 If you install Electrum on your system, you can run it from any
 directory:
 
   sudo python setup.py install
-  electrum
+  electrum-ixc
 
 
 To start Electrum from your web browser, see
@@ -40,6 +46,6 @@ On Mac OS X:
   # On brew installs
   ARCHFLAGS="-arch i386 -arch x86_64" sudo python setup-release.py py2app --includes sip
 
-  sudo hdiutil create -fs HFS+ -volname "Electrum" -srcfolder dist/Electrum.app dist/electrum-VERSION-macosx.dmg
+  sudo hdiutil create -fs HFS+ -volname "Electrum-IXC" -srcfolder dist/Electrum-IXC.app dist/electrum-ixc-VERSION-macosx.dmg
 
 
