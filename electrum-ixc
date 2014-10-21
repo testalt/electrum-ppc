@@ -190,7 +190,7 @@ if __name__ == '__main__':
         if gui_name in ['lite', 'classic']:
             gui_name = 'qt'
         try:
-            gui = __import__('electrum_gui.' + gui_name, fromlist=['electrum_gui'])
+            gui = __import__('electrum_ixc_gui.' + gui_name, fromlist=['electrum_ixc_gui'])
         except ImportError:
             traceback.print_exc(file=sys.stdout)
             sys.exit()
