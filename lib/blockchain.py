@@ -17,7 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-import threading, time, Queue, os, sys, shutil
+import threading, time, Queue, os, sys, shutil, traceback
 from util import user_dir, appdata_dir, print_error
 from bitcoin import *
 
@@ -32,7 +32,8 @@ class Blockchain(threading.Thread):
         self.lock = threading.Lock()
         self.local_height = 0
         self.running = False
-        self.headers_url = 'http://headers.electrum-ixc.org/blockchain_headers'
+        self.headers_url = ''
+        #self.headers_url = 'http://headers.electrum-ixc.org/blockchain_headers'
         self.set_local_height()
         self.queue = Queue.Queue()
 
@@ -120,6 +121,8 @@ class Blockchain(threading.Thread):
                 assert bits == header.get('bits')
                 assert int('0x'+_hash,16) < target
             except Exception:
+                print Exception
+                print 'Verify chain failed!'
                 return False
 
             prev_header = header
@@ -245,20 +248,64 @@ class Blockchain(threading.Thread):
         if chain is None:
             chain = []  # Do not use mutables as default values!
 
+        #max_target = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF 
         max_target = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
         if index == 0: return 0x1d00ffff, max_target
 
         first = self.read_header((index-1)*2016)
+        # Litecoin: go back the full period unless it's the first retarget
+        #if index == 1:
+            #first = self.read_header(0)
+        #else:
+            #first = self.read_header((index-1)*2016-1)
+
         last = self.read_header(index*2016-1)
         if last is None:
             for h in chain:
                 if h.get('block_height') == index*2016-1:
                     last = h
+
+        print first
+        print last
  
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
+
         nTargetTimespan = 14*24*60*60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan/4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan*4)
+
+        #@ixcoin TODO: headers server for initial headers download??
+        #next normal target: 20160
+
+        #print 'block_height'
+        #print last.get('block_height')
+        #print 'asdfdfa'
+        #print last.get('block_height') + 1
+        #print 'asldkfjadsfljsdf'
+
+        revisedIxcoin = False
+
+        if last.get('block_height') and last.get('block_height') + 1 > 20055:
+            revisedIxcoin = True
+
+        print revisedIxcoin
+
+        if revisedIxcoin:
+            nTargetTimespan = 24 * 60 * 60 #24 hours (144 blocks)
+
+        # https://github.com/FrictionlessCoin/iXcoin/commit/47a908c3dc11ca3b8f6e2b537e3972c2670fc742#diff-7ec3c68a81efff79b6ca22ac1f1eabbaR1219
+        if (not revisedIxcoin):
+            nActualTimespan = max(nActualTimespan, nTargetTimespan/4)
+            nActualTimespan = min(nActualTimespan, nTargetTimespan*4)
+        else:
+            nTwoPercent = nTargetTimespan / 50
+            if (nActualTimespan < nTargetTimespan):
+                if (nActualTimespan < (nTwoPercent * 16)):
+                    nActualTimespan = (nTwoPercent * 45)
+                elif (nActualTimespan < (nTwoPercent * 32)):
+                    nActualTimespan = (nTwoPercent * 47)
+                else:
+                    nActualTimespan = (nTwoPercent * 49)
+            elif (nActualTimespan > nTargetTimespan * 4):
+                nActualTimespan = nTargetTimespan * 4
 
         bits = last.get('bits') 
         # convert to bignum
@@ -284,6 +331,8 @@ class Blockchain(threading.Thread):
             i += 1
 
         new_bits = c + MM * i
+        print new_bits
+        print new_target
         return new_bits, new_target
 
 
@@ -296,7 +345,7 @@ class Blockchain(threading.Thread):
             try:
                 ir = queue.get(timeout=1)
             except Queue.Empty:
-                print_error('blockchain: request timeout')
+                #print_error('blockchain: request timeout')
                 continue
             i, r = ir
             result = r['result']
@@ -351,6 +400,8 @@ class Blockchain(threading.Thread):
                 self.verify_chunk(n, r)
                 n = n + 1
             except Exception:
+                print traceback.print_exc()
+                print sys.exc_info()
                 print_error('Verify chunk failed!')
                 n = n - 1
                 if n < 0:

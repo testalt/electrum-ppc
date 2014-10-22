@@ -1,7 +1,37 @@
 ** base58-encoded Ixcoin addresses.
 Public-key-hash-addresses have version 138 (or 111 testnet).
 
+int64 nSubsidy = 96 * COIN;
 
+   nSubsidy >>= (nHeight / 210000);
+
+    //Hard limit to 21M Ixcoins
+    if (nHeight >= 227499)
+    		nSubsidy = 0;
+
+static const int64 nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+
+static const int64 nTargetSpacing = 10 * 60;
+
+getnexwork required_ixc:https://github.com/FrictionlessCoin/iXcoin/commit/47a908c3dc11ca3b8f6e2b537e3972c2670fc742#diff-7ec3c68a81efff79b6ca22ac1f1eabbaR1184
+
+  int64 nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
++	bool revisedIxcoin = pindexLast->nHeight+1 > 20055; //next normal target: 20160
++	if (revisedIxcoin) nTargetTimespan = 24 * 60 * 60; //24 hours i.e. 144 blocks
++
++	const int64 nTargetSpacing = 10 * 60;
++    const int64 nInterval = nTargetTimespan / nTargetSpacing;
+
+
++// Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
++static const int LOCKTIME_THRESHOLD = 500000000;
+
+ block.nTime    = 1304113447;  
+ block.nNonce   = 2245271137;
+
+// Genesis block
+const char* pszTimestamp = "To see the farm is to leave it";
+txNew.vout[0].scriptPubKey = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11984") << OP_CHECKSIG;
 
 uint256 hashGenesisBlock("0x0000000001534ef8893b025b9c1da67250285e35c9f76cae36a4904fdf72c591");//("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"); // ixcoin
 const int nTotalBlocksEstimate = 36500; // Conservative estimate of total nr of blocks on main chain //ixcoin
