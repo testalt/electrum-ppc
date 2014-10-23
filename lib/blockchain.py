@@ -118,8 +118,8 @@ class Blockchain(threading.Thread):
             _hash = self.hash_header(header)
             try:
                 assert prev_hash == header.get('prev_block_hash')
-                assert bits == header.get('bits')
-                assert int('0x'+_hash,16) < target
+                #assert bits == header.get('bits')
+                #assert int('0x'+_hash,16) < target
             except Exception:
                 print Exception
                 print 'Verify chain failed!'
@@ -151,8 +151,8 @@ class Blockchain(threading.Thread):
             header = self.header_from_string(raw_header)
             _hash = self.hash_header(header)
             assert previous_hash == header.get('prev_block_hash')
-            assert bits == header.get('bits')
-            assert int('0x'+_hash,16) < target
+            #assert bits == header.get('bits')
+            #assert int('0x'+_hash,16) < target
 
             previous_header = header
             previous_hash = _hash 
@@ -248,7 +248,6 @@ class Blockchain(threading.Thread):
         if chain is None:
             chain = []  # Do not use mutables as default values!
 
-        #max_target = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF 
         max_target = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
         if index == 0: return 0x1d00ffff, max_target
 
@@ -265,47 +264,71 @@ class Blockchain(threading.Thread):
                 if h.get('block_height') == index*2016-1:
                     last = h
 
+
+        nTargetTimespan = 14*24*60*60
+
+        #next normal target: 20160
+
+
+        height = index * 2016
+        print 'height'
+        print height
+
+        revisedIxcoin = False
+        if height > 20055:
+            revisedIxcoin = True
+
+        print 'revisedIxcoin?'
+        print revisedIxcoin
+
+        if revisedIxcoin:
+            nTargetTimespan = 24*60*60 #24 hours (144 blocks)
+
+        nTargetSpacing = 10 * 60
+        nInterval = nTargetTimespan / nTargetSpacing
+
+        print 'nInterval'
+        print nInterval
+
+        # Only change once per interval
+        print 'height % nInterval'
+        print height % nInterval
+        if (height % nInterval is not 0):
+            print 'only change once per interval'
+            return last.get('bits'), last.get('target'), nInterval
+       
+        first_index = index * 2016 - 1 - nInterval
+        print 'first index'
+        print first_index
+        if first_index > 0:
+            first = self.read_header(first_index)
+
         print first
         print last
  
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
 
-        nTargetTimespan = 14*24*60*60
-
-        #@ixcoin TODO: headers server for initial headers download??
-        #next normal target: 20160
-
-        #print 'block_height'
-        #print last.get('block_height')
-        #print 'asdfdfa'
-        #print last.get('block_height') + 1
-        #print 'asldkfjadsfljsdf'
-
-        revisedIxcoin = False
-
-        if last.get('block_height') and last.get('block_height') + 1 > 20055:
-            revisedIxcoin = True
-
-        print revisedIxcoin
-
-        if revisedIxcoin:
-            nTargetTimespan = 24 * 60 * 60 #24 hours (144 blocks)
-
+        print nTargetTimespan
         # https://github.com/FrictionlessCoin/iXcoin/commit/47a908c3dc11ca3b8f6e2b537e3972c2670fc742#diff-7ec3c68a81efff79b6ca22ac1f1eabbaR1219
         if (not revisedIxcoin):
             nActualTimespan = max(nActualTimespan, nTargetTimespan/4)
             nActualTimespan = min(nActualTimespan, nTargetTimespan*4)
         else:
+            print 'revised ixcoin'
             nTwoPercent = nTargetTimespan / 50
-            if (nActualTimespan < nTargetTimespan):
-                if (nActualTimespan < (nTwoPercent * 16)):
+            print nTwoPercent
+            if nActualTimespan < nTargetTimespan:
+                if nActualTimespan < (nTwoPercent * 16):
                     nActualTimespan = (nTwoPercent * 45)
-                elif (nActualTimespan < (nTwoPercent * 32)):
+                elif nActualTimespan < (nTwoPercent * 32):
                     nActualTimespan = (nTwoPercent * 47)
                 else:
                     nActualTimespan = (nTwoPercent * 49)
-            elif (nActualTimespan > nTargetTimespan * 4):
+            elif nActualTimespan > nTargetTimespan * 4:
                 nActualTimespan = nTargetTimespan * 4
+
+        print 'nActualTimespan - nTargetTimespan'
+        print nActualTimespan - nTargetTimespan
 
         bits = last.get('bits') 
         # convert to bignum
@@ -317,7 +340,7 @@ class Blockchain(threading.Thread):
 
         # new target
         new_target = min( max_target, (target * nActualTimespan)/nTargetTimespan )
-        
+
         # convert it to bits
         c = ("%064X"%new_target)[2:]
         i = 31
@@ -331,8 +354,12 @@ class Blockchain(threading.Thread):
             i += 1
 
         new_bits = c + MM * i
+
+        print 'last bits'
+        print last.get('bits')
+        print 'new bits'
         print new_bits
-        print new_target
+        
         return new_bits, new_target
 
 
