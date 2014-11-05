@@ -1,4 +1,4 @@
-from electrum_ixc.i18n import _
+from electrum_ppc.i18n import _
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import os.path

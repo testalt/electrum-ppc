@@ -1,8 +1,8 @@
 include README LICENCE RELEASE-NOTES AUTHORS
-include electrum-ixc.conf.sample
-include electrum-ixc.desktop
+include electrum-ppc.conf.sample
+include electrum-ppc.desktop
 include *.py
-include electrum-ixc
+include electrum-ppc
 recursive-include lib *.py
 recursive-include gui *.py
 recursive-include plugins *.py
